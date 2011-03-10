@@ -15,7 +15,6 @@
 # Feel free to use and update, but be sure to contribute your
 # code back to the project and attribute as required by the license.
 #++
-require 'gdocs4ruby/base' 
 require 'gdocs4ruby/base_object'
 require 'gdocs4ruby/folder'
 require 'gdocs4ruby/document'
@@ -24,8 +23,15 @@ require 'gdocs4ruby/presentation'
 
 module GDocs4Ruby
 
-DOCUMENT_LIST_FEED = "https://docs.google.com/feeds/documents/private/full"
-FOLDER_LIST_FEED = "http://docs.google.com/feeds/documents/private/full/-/folder?showfolders=true"
+# this feeds are for version 2.0 only
+#DOCUMENT_LIST_FEED = "https://docs.google.com/feeds/documents/private/full"
+#FOLDER_LIST_FEED = "http://docs.google.com/feeds/documents/private/full/-/folder?showfolders=true"
+
+
+DOCUMENT_UPLOAD_URI = "https://docs.google.com/feeds/default/private/full"
+
+DOCUMENT_LIST_FEED = "http://docs.google.com/feeds/default/private/full/-/document"
+FOLDER_LIST_FEED   = "http://docs.google.com/feeds/default/private/full/-/folder"
 
   #The service class is the main handler for all direct interactions with the 
   #Google Documents API.  A service represents a single user account.  Each user

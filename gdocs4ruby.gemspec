@@ -1,8 +1,8 @@
 Gem::Specification.new do |s|
    s.name = %q{gdocs4ruby}
-   s.version = "0.1.1"
+   s.version = "0.1.2"
    s.date = %q{2010-03-12}
-   s.authors = ["Mike Reich"]
+   s.authors = ["Mike Reich", "Kevin Edwards"]
    s.email = %q{mike@seabourneconsulting.com}
    s.summary = %q{A full featured wrapper for interacting with the Google Docs API}
    s.homepage = %q{http://gdocs4ruby.rubyforge.org/}

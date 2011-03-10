@@ -128,6 +128,8 @@ module GDocs4Ruby
     #A local file to upload content from
     attr_accessor :local_file
     
+    attr_accessor :logger
+    
     #Creates a new BaseObject instance.  Requires a valid GData4Ruby::Service object.
     def initialize(service, attributes = {})
       super(service, attributes)
@@ -139,7 +141,7 @@ module GDocs4Ruby
       @content = @content_type = nil
       
       if defined?(Rails)
-        self.logger Rails.logger
+        self.logger = Rails.logger
       end
     end
     
@@ -191,10 +193,8 @@ module GDocs4Ruby
     end
     
     #Saves or creates the object depending on whether it exists or not.
-    def save(convert)
-      Rails.logger.info "SAVE FILE WITH CONVERT: #{convert}"
-      
-      
+    #ocr - save with google Optical Character recognition. Only works for certain file types
+    def save(ocr=false)
       if @exists
         if (not @local_file.nil? and @local_file.is_a? String) or @content
           @include_etag = false
@@ -211,7 +211,7 @@ module GDocs4Ruby
         end
         return true
       else
-        return create(convert)
+        return create(ocr)
       end
     end
           
@@ -288,16 +288,20 @@ module GDocs4Ruby
     end
     
     #Creates a new object instance on the Google server if the object doesn't already exist.
-    # param convert=true => tell Google to attempt to convert the document to one of their native Google docs format
-    def create(convert)
+    # param ocr=true => tell Google to attempt to convert the document with OCR
+    # param convert only works if you have google apps for business account
+    def create(ocr=false)
       ret = if (not @local_file.nil? and @local_file.is_a? String) or @content
         if @local_file
-          service.send_request(GData4Ruby::Request.new(:post, DOCUMENT_LIST_FEED, create_multipart_message([{:type => 'application/atom+xml', :content => to_xml()}, {:type => UPLOAD_TYPES[File.extname(@local_file).gsub(".", "").to_sym], :content => get_file(@local_file).read}]), {'Content-Type' => "multipart/related; boundary=#{BOUNDARY}", 'Content-Length' => File.size(@local_file).to_s, 'Slug' => File.basename(@local_file)}))
+          request = GData4Ruby::Request.new(:post, DOCUMENT_UPLOAD_URI, create_multipart_message([{:type => 'application/atom+xml', :content => to_xml()}, {:type => UPLOAD_TYPES[File.extname(@local_file).gsub(".", "").to_sym], :content => get_file(@local_file).read}]), {'Content-Type' => "multipart/related; boundary=#{BOUNDARY}", 'Content-Length' => File.size(@local_file).to_s, 'Slug' => File.basename(@local_file)}, 'ocr' => ocr)
+          service.send_request(request)
         elsif @content
-          service.send_request(GData4Ruby::Request.new(:post, DOCUMENT_LIST_FEED, create_multipart_message([{:type => 'application/atom+xml', :content => to_xml()}, {:type => UPLOAD_TYPES[@content_type.to_sym], :content => @content}]), {'Content-Type' => "multipart/related; boundary=#{BOUNDARY}", 'Content-Length' => @content.size.to_s, 'Slug' => @title}))
+          request = GData4Ruby::Request.new(:post, DOCUMENT_UPLOAD_URI, create_multipart_message([{:type => 'application/atom+xml', :content => to_xml()}, {:type => UPLOAD_TYPES[@content_type.to_sym], :content => @content}]), {'Content-Type' => "multipart/related; boundary=#{BOUNDARY}", 'Content-Length' => @content.size.to_s, 'Slug' => @title})
+          service.send_request(request)
         end      
       else
-        service.send_request(GData4Ruby::Request.new(:post, DOCUMENT_LIST_FEED, to_xml()))
+        request = GData4Ruby::Request.new(:post, DOCUMENT_UPLOAD_URI, to_xml())
+        service.send_request(request)
       end
       if not load(ret.read_body)
         raise SaveFailed
