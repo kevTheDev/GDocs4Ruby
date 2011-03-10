@@ -137,6 +137,10 @@ module GDocs4Ruby
       @edit_content_uri = nil
       @viewed = false
       @content = @content_type = nil
+      
+      if defined?(Rails)
+        self.logger Rails.logger
+      end
     end
     
     public
@@ -187,7 +191,10 @@ module GDocs4Ruby
     end
     
     #Saves or creates the object depending on whether it exists or not.
-    def save
+    def save(convert)
+      Rails.logger.info "SAVE FILE WITH CONVERT: #{convert}"
+      
+      
       if @exists
         if (not @local_file.nil? and @local_file.is_a? String) or @content
           @include_etag = false
@@ -204,7 +211,7 @@ module GDocs4Ruby
         end
         return true
       else
-        return create
+        return create(convert)
       end
     end
           
@@ -281,7 +288,8 @@ module GDocs4Ruby
     end
     
     #Creates a new object instance on the Google server if the object doesn't already exist.
-    def create
+    # param convert=true => tell Google to attempt to convert the document to one of their native Google docs format
+    def create(convert)
       ret = if (not @local_file.nil? and @local_file.is_a? String) or @content
         if @local_file
           service.send_request(GData4Ruby::Request.new(:post, DOCUMENT_LIST_FEED, create_multipart_message([{:type => 'application/atom+xml', :content => to_xml()}, {:type => UPLOAD_TYPES[File.extname(@local_file).gsub(".", "").to_sym], :content => get_file(@local_file).read}]), {'Content-Type' => "multipart/related; boundary=#{BOUNDARY}", 'Content-Length' => File.size(@local_file).to_s, 'Slug' => File.basename(@local_file)}))
