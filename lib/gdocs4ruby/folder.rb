@@ -122,5 +122,13 @@ module GDocs4Ruby
       folder.load(ret.body)
       return folder
     end
+    
+    def find_sub_folder(sub_folder_name)
+      sub_folders.each do |f|
+        return f if f.title == sub_folder_name
+      end
+      
+      return nil
+    end
   end
 end
