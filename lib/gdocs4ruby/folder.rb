@@ -59,20 +59,6 @@ module GDocs4Ruby
       return true
     end
     
-    def id_for_request
-      id.split(':')[1]
-    end
-    
-    def create_sub_folder(sub_folder_name)
-      content = "<?xml version='1.0' encoding='UTF-8'?>
-<atom:entry xmlns:atom='http://www.w3.org/2005/Atom'>
-  <atom:category scheme='http://schemas.google.com/g/2005#kind'
-      term='http://schemas.google.com/docs/2007#folder' label='folder'/>
-  <atom:title>#{sub_folder_name}</atom:title>
-    </atom:entry>"
-      ret = service.send_request(GData4Ruby::Request.new(:post, "https://docs.google.com/feeds/default/private/full/folder%3A#{id_for_request}/contents", content))
-    end
-    
     #Returns a list of sub folders that this folder contains.
     def sub_folders
       ret = service.send_request(GData4Ruby::Request.new(:get, @content_uri+"/-/folder?showfolders=true"))
@@ -144,5 +130,29 @@ module GDocs4Ruby
       
       return nil
     end
+    
+    def id_for_request
+      id.split(':')[1]
+    end
+
+    # TODO - not DRY
+    def create_sub_folder(sub_folder_name)
+      content = "<?xml version='1.0' encoding='UTF-8'?>
+    <atom:entry xmlns:atom='http://www.w3.org/2005/Atom'>
+      <atom:category scheme='http://schemas.google.com/g/2005#kind'
+          term='http://schemas.google.com/docs/2007#folder' label='folder'/>
+      <atom:title>#{sub_folder_name}</atom:title>
+        </atom:entry>"
+      ret = service.send_request(GData4Ruby::Request.new(:post, "https://docs.google.com/feeds/default/private/full/folder%3A#{id_for_request}/contents", content))
+    end
+
+    def find_or_create_sub_folder(sub_folder_name)
+      sub_folder = find_sub_folder(sub_folder_name)
+      return sub_folder unless sub_folder.nil?
+
+      create_sub_folder(sub_folder_name)
+      find_sub_folder(sub_folder_name)
+    end
+    
   end
 end
