@@ -93,5 +93,34 @@ module GDocs4Ruby
     def download_to_file(type, location)
       File.open(location, 'wb+') {|f| f.write(get_content(type)) }
     end
+    
+    def duplicate
+      uri = "https://docs.google.com/feeds/default/private/full/"
+      
+      content = "<?xml version='1.0' encoding='UTF-8'?>
+      <entry xmlns='http://www.w3.org/2005/Atom'>
+        <id>https://docs.google.com/feeds/default/private/full/document%3A#{id_for_request}</id>
+        <title>#{title}_duplicate</title>
+      </entry>"
+      
+      request = GData4Ruby::Request.new(:post, uri, content)
+      ret = service.send_request(request)
+      
+      new_document = Document.new(@service)
+      new_document.load(ret.body)
+      new_document
+    end
+    
+    def move_to_folder(folder)
+      uri = "https://docs.google.com/feeds/default/private/full/folder%3A#{folder.id_for_request}/contents"
+      
+      content =  "<?xml version='1.0' encoding='UTF-8'?>
+      <entry xmlns='http://www.w3.org/2005/Atom'>
+        <id>https://docs.google.com/feeds/default/private/full/document%3A#{id_for_request}</id>
+      </entry>"
+      
+      service.send_request(GData4Ruby::Request.new(:post, uri, content))
+    end
+    
   end
 end
