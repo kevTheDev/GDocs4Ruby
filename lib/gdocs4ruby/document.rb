@@ -94,13 +94,13 @@ module GDocs4Ruby
       File.open(location, 'wb+') {|f| f.write(get_content(type)) }
     end
     
-    def duplicate
+    def duplicate(new_title='duplicate')
       uri = "https://docs.google.com/feeds/default/private/full/"
       
       content = "<?xml version='1.0' encoding='UTF-8'?>
       <entry xmlns='http://www.w3.org/2005/Atom'>
         <id>https://docs.google.com/feeds/default/private/full/document%3A#{id_for_request}</id>
-        <title>#{title}_duplicate</title>
+        <title>#{new_title}</title>
       </entry>"
       
       request = GData4Ruby::Request.new(:post, uri, content)
