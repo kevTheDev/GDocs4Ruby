@@ -89,7 +89,9 @@ module GDocs4Ruby
           when 'spreadsheet'
             doc = Spreadsheet.new(@service)
           when 'presentation'
-            doc = Presentation.new(service)
+            doc = Presentation.new(@service)
+          when 'folder'
+            doc = Folder.new(@service)
         end
         doc.load(ele.to_s)
         contents << doc
