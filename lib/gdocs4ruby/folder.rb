@@ -114,17 +114,6 @@ module GDocs4Ruby
       return ret
     end
     
-    #A reference to the parent folder.  If there is no parent folder, nil is returned.
-    def parent
-      return nil if @parent_uri == nil
-      ret = @service.send_request(GData4Ruby::Request.new(:get, @parent_uri))
-      folder = nil
-      puts ret.body if @service.debug
-      folder = Folder.new(@service)
-      folder.load(ret.body)
-      return folder
-    end
-    
     def find_sub_folder(sub_folder_name)
       sub_folders.each do |f|
         return f if f.title == sub_folder_name
