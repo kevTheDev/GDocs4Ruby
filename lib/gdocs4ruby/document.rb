@@ -122,5 +122,13 @@ module GDocs4Ruby
       service.send_request(GData4Ruby::Request.new(:post, uri, content))
     end
     
+    def self.find_by_id(service, document_id)
+      uri = "https://docs.google.com/feeds/default/private/full/document%3A#{document_id}"
+      ret = service.send_request(GData4Ruby::Request.new(:get, uri))
+      document = Document.new(service)
+      document.load(ret.body)
+      document
+    end
+    
   end
 end
