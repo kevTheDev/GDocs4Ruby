@@ -146,6 +146,11 @@ module GDocs4Ruby
     end
     
     public
+    
+    def id_for_request
+      id.split(':')[1]
+    end
+    
     #Loads a string containing an XML <entry> from a Google API feed.
     def load(string)
       super(string)

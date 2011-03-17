@@ -130,10 +130,6 @@ module GDocs4Ruby
       
       return nil
     end
-    
-    def id_for_request
-      id.split(':')[1]
-    end
 
     # TODO - not DRY
     def create_sub_folder(sub_folder_name)
