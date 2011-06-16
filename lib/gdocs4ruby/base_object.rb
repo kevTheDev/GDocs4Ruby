@@ -358,26 +358,41 @@ module GDocs4Ruby
       raise ArgumentError, 'query must be a hash or string' if not query.is_a? Hash and not query.is_a? String
       raise ArgumentError, "type must be one of #{TYPES.join(" ")}" if not TYPES.include? type
       if query.is_a? Hash and query[:id]
+        
         id = query[:id]
         puts "id passed, finding event by id" if service.debug
         puts "id = "+id if service.debug
         d = service.send_request(GData4Ruby::Request.new(:get, FEEDS[type.to_sym]+id, {"If-Not-Match" => "*"}))
         puts d.inspect if service.debug
-        if d
-          return get_instance(service, d)
-        end
+        
+        get_instance(service, d) if d
       else
         results = []
+        max_results = args['max-results'].to_i || 100
+        
         term = query.is_a?(Hash) ? CGI::escape(query[:query]) : CGI::escape(query)
         args["q"] = term if term and term != ''
-        ret = service.send_request(GData4Ruby::Request.new(:get, QUERY_FEEDS[type.to_sym], nil, nil, args))
-        xml = REXML::Document.new(ret.body).root
-        xml.elements.each("entry") do |e|
-          results << get_instance(service, e)
+        content = service.send_request(GData4Ruby::Request.new(:get, QUERY_FEEDS[type.to_sym], nil, nil, args))
+        xml = REXML::Document.new(content.body).root
+
+        # Paginates through the results until there are no more pages left or the max_results is exceeded.
+        until results.length >= max_results
+          results.concat( harvest_entries(service, xml) )
+          next_link = xml.elements["link[@rel='next']"]
+        
+          if next_link
+            header = {"Content-Type" => next_link.attributes['type'] }
+            resource = next_link.attributes['href']
+            content = service.send_request(GData4Ruby::Request.new(:get, resource, '', header ) )
+            xml = REXML::Document.new(content.body).root
+          else
+            break
+          end
         end
-        return results
+          
+        results
       end
-      return false
+
     end
     
     #Adds the object to the specified folder.  The parameter must be a valid Folder object.
@@ -393,6 +408,15 @@ module GDocs4Ruby
     end
     
     private
+    
+    # TODO this is incredibly inefficient because of the get_instance method. This 
+    # takes longer than Google does to return the XML!
+    def self.harvest_entries(service, xml)
+      xml.elements.to_a("entry").map { |element| get_instance(service, element) }
+    end
+    
+    # TODO This kills the speed of search. Horrible. Just re-factoring to Nokogiri will
+    # give us acres of improvement.
     def self.get_instance(service, d)
       if d.is_a? Net::HTTPOK
         xml = REXML::Document.new(d.read_body).root
@@ -402,6 +426,10 @@ module GDocs4Ruby
       else
         xml = d
       end
+      
+      # TODO everything is being prematurely loaded into objects. I would be inclined 
+      # to leave it as close to the native format as possible and only convert to objects 
+      # when we need them. i.e. make good use of Nokogiri to get to the stuff we want.
       ele = GData4Ruby::Utils::add_namespaces(xml)
       obj = BaseObject.new(service)
       obj.load(ele.to_s)
