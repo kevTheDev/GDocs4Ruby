@@ -82,13 +82,13 @@ module GDocs4Ruby
                 :pptx => 'application/vnd.ms-powerpoint'}
                 
     FEEDS = {:document => "https://docs.google.com/feeds/documents/private/full/",
-             :folder => "http://docs.google.com/feeds/folders/private/full/",
+             :folder => "https://docs.google.com/feeds/folders/private/full/",
              :spreadsheet => "https://docs.google.com/feeds/documents/private/full/",
              :presentation => "https://docs.google.com/feeds/documents/private/full/",
              :any => "https://docs.google.com/feeds/documents/private/full/"}
              
     QUERY_FEEDS = {:document => "https://docs.google.com/feeds/default/private/full/-/document",
-             :folder => "http://docs.google.com/feeds/folders/private/full/?showfolders=true",
+             :folder => "https://docs.google.com/feeds/folders/private/full/?showfolders=true",
              :spreadsheet => "https://docs.google.com/feeds/documents/private/full/-/spreadsheet",
              :presentation => "https://docs.google.com/feeds/documents/private/full/-/presentation",
              :any => "https://docs.google.com/feeds/documents/private/full/"}
